@@ -1,7 +1,7 @@
 defmodule Exlog do
   @moduledoc """
   Exlang is a wrapper library for Erlog (https://github.com/rvirding/erlog).
-  It defines some convenience functions and macros for writing prolog clauses in 
+  It defines some convenience functions and macros for writing prolog clauses in
   exilirish style.
   """
 
@@ -113,7 +113,7 @@ defmodule Exlog do
       iex(8)> {e,result} = e |> next_solution; result
       {true, [X: :bart]}
       iex(9)> {e,result} = e |> next_solution; result
-      {false, []}     
+      {false, []}
   """
   defmacro prove(e,ex_clause) do
     clause = ex2erlog ex_clause
@@ -157,13 +157,18 @@ defmodule Exlog do
 
   # list
   def ex2erlog(list) when is_list(list) do
-    list |> Enum.reverse
-         |> Enum.map(&ex2erlog/1)
-         |> Enum.reduce(fn x,acc -> {:{}, [], [:',', x, acc]} end)
+    list |> Enum.map(&ex2erlog/1)
   end
 
   # clause
   # format:  f(a) <- [ g(a), h(b,c) ]       LIST IS MANDATORY HERE!
+  def ex2erlog({:<-, meta, [head,body]}) when is_list(body) do
+    body = body
+         |> Enum.reverse
+         |> Enum.map(&ex2erlog/1)
+         |> Enum.reduce(fn x,acc -> {:{}, [], [:',', x, acc]} end)
+    {:{}, meta, [:':-',ex2erlog(head),body]}
+  end
   def ex2erlog({:<-, meta, [head,body]}) do
     {:{}, meta, [:':-',ex2erlog(head),ex2erlog(body)]}
   end
