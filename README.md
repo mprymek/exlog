@@ -7,7 +7,7 @@ This is alpha, highly experimental, untested and probably very buggy. Stay tuned
 
 ## example
 
-```
+```elixir
 iex(1)> use Exlog
 iex(2)> e = Exlog.new
 iex(3)> e = e |> assert!( father(:homer,:lisa) )
@@ -26,7 +26,7 @@ iex(12)> result
 ```
 
 You can even use Elixir variables and dot-accessed items in Exlog clauses:
-```
+```elixir
 iex(13)> l = :lisa
 iex(14)> e |> provable?( father(:homer,l) )
 true

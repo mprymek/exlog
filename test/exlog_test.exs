@@ -1,11 +1,13 @@
 defmodule ExlogTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   use Exlog
 
   setup_all do
     e = Exlog.new
     {:ok, %{e: e}}
   end
+
+  doctest Exlog
 
   test "erlog", %{e: e} do
     {{:succeed, []}, e} = :erlog.prove {:assert,{:father,:homer,:lisa}}, e

@@ -1,8 +1,9 @@
 defmodule Exlog do
   @moduledoc """
-  Exlang is a wrapper library for Erlog (https://github.com/rvirding/erlog).
-  It defines some convenience functions and macros for writing prolog clauses in
-  exilirish style.
+  Exlog is an Elixir wrapper for Erlog (https://github.com/rvirding/erlog).
+
+  It defines some convenience functions and macros for embedding Prolog in Elixir
+  in a more natural way.
   """
 
   defmacro __using__ _opts do
@@ -14,6 +15,9 @@ defmodule Exlog do
   #############################################################################
   # API
 
+  @doc """
+  Create a new Prolog context.
+  """
   def new do
     {:ok,e} = :erlog.new
     e
@@ -26,18 +30,21 @@ defmodule Exlog do
   #end
 
   @doc """
-  Determines if clause is provable.
+  Determine if clause is provable.
 
   Note this function returns only true or false. You can't change the engine state with it.
 
-  ## Examples
+  ## Example
 
-      iex(1)> use Exlog
-      iex(2)> e = Exlog.new
-      iex(3)> e = e |> assert!( father(:homer,:lisa) )
-      iex(4)> e |> provable?( father(:homer,:lisa) )
+      iex> use Exlog
+      nil
+      iex> e = Exlog.new; nil
+      nil
+      iex> e = e |> assert!( father(:homer,:lisa) ); nil
+      nil
+      iex> e |> provable?( father(:homer,:lisa) )
       true
-      iex(5)> e |> provable?( father(:homer,:ralph) )
+      iex> e |> provable?( father(:homer,:ralph) )
       false
   """
   # NOTE: We do not return context here! You can't use assert(...) etc.
@@ -50,36 +57,47 @@ defmodule Exlog do
   end
 
   @doc """
-  Asserts fact.
+  Assert a fact.
 
-  ## Examples
+  ## Example
 
-      iex(1)> use Exlog
-      iex(2)> e = Exlog.new
-      iex(3)> e = e |> assert!( father(:homer,:lisa) )
+      iex> e = Exlog.new; nil
+      nil
+      iex> e = e |> assert!( father(:homer,:lisa) ); nil
+      nil
   """
   defmacro assert!(e,ex_clause) do
     meta_predicate :assert!, e, {:assert, ex2erlog(ex_clause)}
   end
 
   @doc """
-  Inserts clause at the end of the clause database.
+  Insert clause at the beginning of the clause database.
 
-  ## Examples
+  ## Example
 
-      iex(1)> use Exlog
-      iex(2)> e = Exlog.new
-      iex(3)> e = e |> assert!( father(:homer,:lisa) )
-      iex(4)> e = e |> assertz!( father(X) <- father(X,_) )
-      iex(5)> e |> provable?( father(:homer) )
+      iex> use Exlog
+      nil
+      iex> e = Exlog.new; nil
+      nil
+      iex> e = e |> assert!( father(:homer,:lisa) ); nil
+      nil
+      iex> e = e |> asserta!( father(X) <- father(X,_) ); nil
+      nil
+      iex> e |> provable?( father(:homer) )
       true
-      iex(6)> e |> provable?( father(:ralph) )
+      iex> e |> provable?( father(:ralph) )
       false
-      iex(7)> e = e |> assertz!( nice_woman(X) <- [nice(X),woman(X)] )
-      iex(8)> e = e |> assert!( nice(:marge) ) |> assert!( woman(:marge) ) |> assert!( nice(:troy) ) |> assert!( woman(:patty) )
-      iex(9)> {e,result} = e |> prove_all( nice_woman(X) )
-      iex(10)> result
+      iex> e = e |> asserta!( nice_woman(X) <- [nice(X),woman(X)] ); nil
+      nil
+      iex> e = e |> assert!( nice(:marge) ) |> assert!( woman(:marge) ) |> assert!( nice(:troy) ) |> assert!( woman(:patty) ); nil
+      nil
+      iex> {e,result} = e |> prove_all( nice_woman(X) ); result
       [[X: :marge]]
+  """
+  @doc """
+  Insert clause at the end of the clause database.
+
+  see `asserta!/2`
   """
   defmacro assertz!(e,ex_clause) do
     meta_predicate :assertz!, e, {:assertz, ex2erlog(ex_clause)}
@@ -98,21 +116,23 @@ defmodule Exlog do
   @doc """
   Prove clause.
 
-  ## Examples
+  ## Example
 
-      iex(1)> use Exlog
-      iex(2)> e = Exlog.new
-      iex(3)> e = e |> assert!( father(:homer,:lisa) )
-      iex(4)> e = e |> assert!( father(:homer,:bart) )
-      iex(5)> {e,result} = e |> prove( father(:homer,:lisa) ); result
+      iex> e = Exlog.new; nil
+      nil
+      iex> e = e |> assert!( father(:homer,:lisa) ); nil
+      nil
+      iex> e = e |> assert!( father(:homer,:bart) ); nil
+      nil
+      iex> {e,result} = e |> prove( father(:homer,:lisa) ); result
       {true, []}
-      iex(6)> {e,result} = e |> prove( father(:homer,:ralph) ); result
+      iex> {e,result} = e |> prove( father(:homer,:ralph) ); result
       {false, []}
-      iex(7)> {e,result} = e |> prove( father(:homer,X) ); result
+      iex> {e,result} = e |> prove( father(:homer,X) ); result
       {true, [X: :lisa]}
-      iex(8)> {e,result} = e |> next_solution; result
+      iex> {e,result} = e |> next_solution; result
       {true, [X: :bart]}
-      iex(9)> {e,result} = e |> next_solution; result
+      iex> {e,result} = e |> next_solution; result
       {false, []}
   """
   defmacro prove(e,ex_clause) do
@@ -134,15 +154,17 @@ defmodule Exlog do
   end
 
   @doc """
-  Prove clause.
+  Prove clause and get all solutions.
 
-  ## Examples
+  ## Example
 
-      iex(1)> use Exlog
-      iex(2)> e = Exlog.new
-      iex(3)> e = e |> assert!( father(:homer,:lisa) )
-      iex(4)> e = e |> assert!( father(:homer,:bart) )
-      iex(5)> {e,result} = e |> prove_all( father(:homer,X) ); result
+      iex> e = Exlog.new; nil
+      nil
+      iex> e = e |> assert!( father(:homer,:lisa) ); nil
+      nil
+      iex> e = e |> assert!( father(:homer,:bart) ); nil
+      nil
+      iex> {e,result} = e |> prove_all( father(:homer,X) ); result
       [[X: :lisa], [X: :bart]]
   """
   defmacro prove_all(e,ex_clause) do
