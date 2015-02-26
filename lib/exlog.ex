@@ -156,55 +156,55 @@ defmodule Exlog do
   # IMPLEMENTATION
 
   # list
-  def ex2erlog(list) when is_list(list) do
+  defp ex2erlog(list) when is_list(list) do
     list |> Enum.map(&ex2erlog/1)
   end
 
   # clause
   # format:  f(a) <- [ g(a), h(b,c) ]       LIST IS MANDATORY HERE!
-  def ex2erlog({:<-, meta, [head,body]}) when is_list(body) do
+  defp ex2erlog({:<-, meta, [head,body]}) when is_list(body) do
     body = body
          |> Enum.reverse
          |> Enum.map(&ex2erlog/1)
          |> Enum.reduce(fn x,acc -> {:{}, [], [:',', x, acc]} end)
     {:{}, meta, [:':-',ex2erlog(head),body]}
   end
-  def ex2erlog({:<-, meta, [head,body]}) do
+  defp ex2erlog({:<-, meta, [head,body]}) do
     {:{}, meta, [:':-',ex2erlog(head),ex2erlog(body)]}
   end
 
   # s.x
-  def ex2erlog(dot_expr={{:., _, [_, _]}, _, _}), do: dot_expr
+  defp ex2erlog(dot_expr={{:., _, [_, _]}, _, _}), do: dot_expr
 
   # atom
-  def ex2erlog(atom) when is_atom(atom), do: atom
+  defp ex2erlog(atom) when is_atom(atom), do: atom
 
   # number
-  def ex2erlog(num) when is_integer(num) or is_float(num), do: num
+  defp ex2erlog(num) when is_integer(num) or is_float(num), do: num
 
   # Prolog variable
-  def ex2erlog({:__aliases__, meta, [atom]}) when is_atom(atom) do
+  defp ex2erlog({:__aliases__, meta, [atom]}) when is_atom(atom) do
     {:{}, meta, [atom]}
   end
-  def ex2erlog({:_, meta, mod}) when is_atom(mod) do
+  defp ex2erlog({:_, meta, mod}) when is_atom(mod) do
     {:{}, meta, [:_]}
   end
 
   # functor
-  def ex2erlog({fun, meta, args}) when is_atom(fun) and is_list(args) and (not (fun in [:<-])) do
+  defp ex2erlog({fun, meta, args}) when is_atom(fun) and is_list(args) and (not (fun in [:<-])) do
     e_args = args |> Enum.map(&ex2erlog/1)
     {:{}, meta, [fun|e_args]}
   end
 
   # Elixir variable
-  def ex2erlog({atom, meta, mod}) when is_atom(atom) and is_atom(mod) do
+  defp ex2erlog({atom, meta, mod}) when is_atom(atom) and is_atom(mod) do
     {atom, meta, mod}
   end
 
   # string
-  def ex2erlog(str) when is_binary(str), do: str
+  defp ex2erlog(str) when is_binary(str), do: str
 
-  def ex2erlog(any) do
+  defp ex2erlog(any) do
     raise "Invalid clause: #{inspect any}"
   end
 
