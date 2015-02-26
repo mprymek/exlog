@@ -94,6 +94,10 @@ defmodule Exlog do
       iex> {e,result} = e |> prove_all( nice_woman(X) ); result
       [[X: :marge]]
   """
+  defmacro asserta!(e,ex_clause) do
+    meta_predicate :asserta!, e, {:asserta, ex2erlog(ex_clause)}
+  end
+
   @doc """
   Insert clause at the end of the clause database.
 
@@ -101,6 +105,57 @@ defmodule Exlog do
   """
   defmacro assertz!(e,ex_clause) do
     meta_predicate :assertz!, e, {:assertz, ex2erlog(ex_clause)}
+  end
+
+  @doc """
+  Remove first unifiable clause from database.
+
+  ## Example
+
+      iex> e = Exlog.new; nil
+      nil
+      iex> e = e |> assert!( father(:homer,:bart) ); nil
+      nil
+      iex> e = e |> assert!( father(:homer,:lisa) ); nil
+      nil
+      iex> e = e |> retract!( father(:homer,X) ); nil
+      nil
+      iex> {_,result} = e |> prove( father(:homer,X) ); result
+      {true, [X: :lisa]}
+  """
+  defmacro retract!(e,ex_term) do
+    meta_predicate :retract!, e, {:retract, ex2erlog(ex_term)}
+  end
+
+  # @TODO: DOES NOT WORK FOR NOW
+  #@doc """
+  #Removes all clauses which head unifies with the given head.
+  #
+  #Like `retract!/2` but removes all clauses with unifiable heads.
+  #"""
+  #defmacro retractall!(e,ex_head) do
+  #  meta_predicate :retractall!, e, {:retractall, ex2erlog(ex_head)}
+  #end
+
+  @doc """
+  Remove all clauses with the given functor and arity.
+
+  ## Example
+
+      iex> e = Exlog.new; nil
+      nil
+      iex> e = e |> assert!( father(:homer,:bart) ); nil
+      nil
+      iex> e = e |> assert!( father(:homer,:lisa) ); nil
+      nil
+      iex> e = e |> abolish!( father/2 ); nil
+      nil
+      iex> e |> prove( father(X,Y) )
+      ** (RuntimeError) Exlog error: {:existence_error, :procedure, {:/, :father, 2}}
+          (exlog) lib/exlog.ex:265: Exlog.e_prove/2
+  """
+  defmacro abolish!(e,ex_pred_ind) do
+    meta_predicate :abolish!, e, {:abolish, ex2erlog(ex_pred_ind)}
   end
 
   defp meta_predicate(pred_name,e,clause) do
@@ -194,6 +249,10 @@ defmodule Exlog do
   defp ex2erlog({:<-, meta, [head,body]}) do
     {:{}, meta, [:':-',ex2erlog(head),ex2erlog(body)]}
   end
+
+  # predicate indicator
+  defp ex2erlog({:/, meta, [{functor,_meta,_mod},arity]}) when is_atom(functor) and is_integer(arity), do:
+    {:{},meta,[:/,functor,arity]}
 
   # s.x
   defp ex2erlog(dot_expr={{:., _, [_, _]}, _, _}), do: dot_expr
