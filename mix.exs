@@ -25,7 +25,7 @@ defmodule Exlog.Mixfile do
   #
   # Type `mix help deps` for more examples and options
   defp deps, do: [
-    {:erlog, github: "rvirding/erlog"},
+    {:erlog, github: "rvirding/erlog", ref: "3cca7df53e"},
 
     {:earmark, "~> 0.1", only: :dev},
     {:ex_doc, "~> 0.7", only: :dev},
