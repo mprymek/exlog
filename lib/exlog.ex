@@ -29,6 +29,17 @@ defmodule Exlog do
   #  e
   #end
 
+  def consult!(e,fname) when is_binary(fname) do
+    {:ok,e} = fname |> String.to_char_list |> :erlog.consult(e)
+    e
+  end
+
+  # TODO: doesn't work...
+  #def reconsult!(e,fname) when is_binary(fname) do
+  #  {:ok,e} = fname |> String.to_char_list |> :erlog.reconsult(e)
+  #  e
+  #end
+
   @doc """
   Determine if clause is provable.
 

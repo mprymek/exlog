@@ -102,4 +102,22 @@ defmodule ExlogTest do
     {_e,res} = e |> prove_all( father("homer",X) )
     assert res == [[X: "lisa"]]
   end
+
+  test "consult", %{e: e} do
+    e = e |> consult!("deps/erlog/examples/family.pl")
+    {_e,res} = e |> prove_all( mother(X,Y) )
+    assert res == [[X: :pam, Y: :bob], [X: :pat, Y: :jim]]
+  end
+
+  # FAILS
+  #test "reconsult", %{e: e} do
+  #  e = e |> consult!("deps/erlog/examples/family.pl")
+  #  e = e |> retract!( parent(X,Y) )
+  #  {_e,res} = e |> prove_all( mother(X,Y) )
+  #  assert res == [[X: :pat, Y: :jim]]
+  #
+  #  e = e |> consult!("deps/erlog/examples/family.pl")
+  #  {_e,res} = e |> prove_all( mother(X,Y) )
+  #  assert res == [[X: :pat, Y: :jim]]
+  #end
 end
